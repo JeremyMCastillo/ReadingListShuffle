@@ -50,9 +50,10 @@ namespace ReadingListShuffle
             {
                 parser.TextFieldType = FieldType.Delimited;
                 parser.SetDelimiters(",");
+                parser.HasFieldsEnclosedInQuotes = true;
                 while (!parser.EndOfData)
                 {
-                    string[] fields = parser.ReadFields();
+                    string[] fields = parser.ReadFields().Select(field => "\"" + field + "\"").ToArray();
                     if (collections.ContainsKey(fields[collectionIDIndex]))
                     {
                         collections[fields[collectionIDIndex]].Enqueue(fields);
@@ -72,11 +73,23 @@ namespace ReadingListShuffle
         static void ShuffleCollections(Dictionary<string, Queue<string[]>> collections, string outputFilePath)
         {
             Random rand = new Random(Guid.NewGuid().GetHashCode());
+            bool pickLarge = true;
             while (collections.Keys.Count > 0)
             {
-                // Get the next row from a random collection
-                int selectedIndex = rand.Next(0, collections.Count);
-                KeyValuePair<string, Queue<string[]>> element = collections.ElementAt(selectedIndex);
+                KeyValuePair<string, Queue<string[]>> element;
+                if (pickLarge)
+                {
+                    int maxCount = collections.Max(pair => pair.Value.Count);
+                    element = collections.First(pair => pair.Value.Count == maxCount);
+                    pickLarge = false;
+                }
+                else
+                {
+                    // Get the next row from a random collection
+                    int selectedIndex = rand.Next(0, collections.Count);
+                    element = collections.ElementAt(selectedIndex);
+                    pickLarge = true;
+                }
                 string[] entry = element.Value.Dequeue();
                 File.AppendAllText(outputFilePath, string.Join(",", entry) + "\r\n");
                 if (element.Value.Count <= 0)
