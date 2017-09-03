@@ -36,7 +36,7 @@ namespace ReadingListShuffle
         static int GetCollectionIDColumn()
         {
             int result;
-            for (string idColumn = string.Empty; int.TryParse(idColumn, out result); idColumn = Console.ReadLine())
+            for (string idColumn = string.Empty; !int.TryParse(idColumn, out result); idColumn = Console.ReadLine())
             {
                 Console.WriteLine("Which Column Contains the Collection Inforamtion? Enter zero based index:");
             }
